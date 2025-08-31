@@ -18,7 +18,7 @@ Here are some ideas to get you started:
 # Hi, I'm Aditya  
 
 
-I'm passionate about coding, data, and web development, and learning new technologies.  
+I'm passionate about coding, web development, and learning new technologies.  
 
 ---
 
