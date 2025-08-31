@@ -14,3 +14,46 @@ Here are some ideas to get you started:
 - 😄 Pronouns: ...
 - ⚡ Fun fact: ...
 -->
+
+# Hi 👋, I'm Aditya  
+
+Welcome to my GitHub profile! 🚀  
+I'm passionate about coding, data, and web development, and I'm constantly learning new technologies.  
+
+---
+
+## 🛠️ Skills  
+
+- **Programming Languages**: C, Python, Java (learning), JavaScript (learning)  
+- **Web Development**: HTML, CSS, currently working on JavaScript libraries  
+- **Data Science & ML**:  
+  - Python Pandas (DataFrame manipulation)  
+  - NumPy, Matplotlib  
+  - Machine Learning: Linear Regression, Logistic Regression  
+
+---
+
+
+
+
+
+---
+
+## 📫 Connect With Me  
+
+<!--[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/YOUR-LINKEDIN-USERNAME/)  !-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
