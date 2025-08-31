@@ -1,4 +1,4 @@
-## Hi there 👋
+
 
 <!--
 **aditya-3301/aditya-3301** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
@@ -15,10 +15,10 @@ Here are some ideas to get you started:
 - ⚡ Fun fact: ...
 -->
 
-# Hi 👋, I'm Aditya  
+# Hi, I'm Aditya  
 
-Welcome to my GitHub profile! 🚀  
-I'm passionate about coding, data, and web development, and I'm constantly learning new technologies.  
+
+I'm passionate about coding, data, and web development, and learning new technologies.  
 
 ---
 
@@ -39,7 +39,7 @@ I'm passionate about coding, data, and web development, and I'm constantly learn
 
 ---
 
-## 📫 Connect With Me  
+
 
 <!--[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/YOUR-LINKEDIN-USERNAME/)  !-->
 
