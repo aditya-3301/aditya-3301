@@ -18,7 +18,7 @@ Here are some ideas to get you started:
 # Hi, I'm Aditya  
 
 
-I'm passionate about coding, web development, and learning new technologies.  
+I'm passionate about coding, web development, and upcoming technologies.  
 
 ---
 
@@ -29,7 +29,8 @@ I'm passionate about coding, web development, and learning new technologies.
 - **Data Science & ML**:  
   - Python Pandas (DataFrame manipulation)  
   - NumPy, Matplotlib  
-  - Machine Learning: Linear Regression, Logistic Regression  
+  - Machine Learning: Linear Regression, Logistic Regression
+  - Decision Trees and RandomForest implementations
 
 ---
 
