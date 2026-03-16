@@ -1,10 +1,10 @@
-# Hi, I'm Aditya 👋
+# Hi, I'm Aditya 
 
 I enjoy coding and building things on the web. I'm always curious about new technologies and currently exploring different areas in programming, especially web development and machine learning.
 
 ---
 
-## 🛠️ What I Work With
+## What I Work With
 
 **Languages**
 - C  
