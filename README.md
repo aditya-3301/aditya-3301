@@ -1,60 +1,39 @@
+# Hi, I'm Aditya 👋
 
-
-<!--
-**aditya-3301/aditya-3301** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
-
-Here are some ideas to get you started:
-
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
-
-# Hi, I'm Aditya  
-
-
-I'm passionate about coding, web development, and upcoming technologies.  
+I enjoy coding and building things on the web. I'm always curious about new technologies and currently exploring different areas in programming, especially web development and machine learning.
 
 ---
 
-## 🛠️ Skills  
+## 🛠️ What I Work With
 
-- **Programming Languages**: C, Python, Java (learning), JavaScript (learning)  
-- **Web Development**: HTML, CSS, currently working on JavaScript libraries  
-- **Data Science & ML**:  
-  - Python Pandas (DataFrame manipulation)  
-  - NumPy, Matplotlib  
-  - Machine Learning: Linear Regression, Logistic Regression
-  - Decision Trees and RandomForest implementations
+**Languages**
+- C  
+- Python  
+- Java (currently learning)  
+- JavaScript (currently learning)
+
+**Web Development**
+- HTML  
+- CSS  
+- Learning more about JavaScript and its libraries
+
+**Data Science & Machine Learning**
+- Pandas for working with data
+- NumPy and Matplotlib
+- Machine learning basics:
+  - Linear Regression
+  - Logistic Regression
+  - Decision Trees
+  - Random Forest
 
 ---
 
+## 📚 What I'm Doing Right Now
 
-
-
+- Improving my JavaScript skills  
+- Learning more about machine learning  
+- Building small projects to get better at coding
 
 ---
 
-
-
-<!--[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/YOUR-LINKEDIN-USERNAME/)  !-->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Thanks for stopping by!
