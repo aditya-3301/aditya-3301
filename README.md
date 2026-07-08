@@ -14,7 +14,7 @@
 
 ### `me`
 
-I'm CS student at **BITS Pilani Hyderabad**, currently deep in neural networks and bioinformatic pipeine research. I like understanding systems from the ground up, dataset to deployment,tokenizer to transformer.
+I'm CS student at **BITS Pilani**, currently deep in neural networks and bioinformatic pipeine research. I like understanding systems from the ground up, dataset to deployment,tokenizer to transformer.
 
 ---
 
@@ -37,9 +37,9 @@ I'm CS student at **BITS Pilani Hyderabad**, currently deep in neural networks a
 
 | Project | What it does |
 |---|---|
-| **RAG for Molecule Descriptors** | Dense retrieval + reranking + live PubChem cache layer |
-| **Huntington's Disease Classifier** | RNA methylation classifier, hit 0.98 test AUC |
-| **Web Music Player** | HTML/CSS/JS player, deployed on Vercel |
+| **RAG for Molecule Descriptors** | Dense retrieval ; reranking ; live PubChem cache layer |
+| **Huntington's Classifier** | RNA methylation classifier, hit an excellednt 0.98 test AUC |
+| **Web Music Player** | Music streamer, deployed on Vercel |
 | **GPT-2, from scratch** | Custom tokenizer+ multi-head self-attention, full transformer AND training loop. just pure PyTorch, zero HuggingFace |
 
 ---
