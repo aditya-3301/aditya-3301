@@ -13,7 +13,7 @@
 
 ### `me`
 
-I'm a CS student at **BITS Pilani**, currently deep in neural networks and bioinformatics pipeline research. I like understanding systems from the ground up — dataset to deployment, tokenizer to transforme
+I'm a CS student at **BITS Pilani**, currently deep in neural networks and bioinformatics pipeline research. I like understanding systems from the ground up — dataset to deployment, tokenizer to transformer.
 
 ---
 
@@ -74,12 +74,6 @@ I'm a CS student at **BITS Pilani**, currently deep in neural networks and bioin
 </picture>
 
 </div>
-
----
-
-### Metrics
-
-![metrics](./metrics.svg)
 
 <div align="center">
 <img src="https://capsule-render.vercel.app/api?type=waving&color=6C63FF&height=100&section=footer" width="100%"/>
