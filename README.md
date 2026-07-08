@@ -13,13 +13,7 @@
 
 ### `me`
 
-I'm a CS student at **BITS Pilani**, currently deep in neural networks and bioinformatics pipeline research. I like understanding systems from the ground up — dataset to deployment, tokenizer to transformer.
-
-```text
-Currently compiling thoughts...
-Last commit: recently
-Status: debugging reality
-```
+I'm a CS student at **BITS Pilani**, currently deep in neural networks and bioinformatics pipeline research. I like understanding systems from the ground up — dataset to deployment, tokenizer to transforme
 
 ---
 
