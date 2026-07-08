@@ -4,7 +4,7 @@
 
 ### building things that think, one tensor at a time
 
-[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&pause=1000&color=6C63FF&center=true&vCenter=true&width=600&lines=CSE+%40+BITS+Pilani+Hyderabad;Understanding+neural+nets+from+scratch;RAG+%2B+LLM+pipelines+%2B+classical+ML;No+HuggingFace.+Just+math+and+spite.)](https://git.io/typing-svg)
+[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&pause=1000&color=6C63FF&center=true&vCenter=true&width=600&lines=CSE+%40+BITS+Pilani;Understanding+neural+nets+from+scratch;RAG+%2B+LLM+pipelines+%2B+classical+ML;No+HuggingFace.+Just+math+and+spite.)](https://git.io/typing-svg)
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=6C63FF&height=120&section=header" width="100%"/>
 
