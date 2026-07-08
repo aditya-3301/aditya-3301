@@ -61,10 +61,10 @@ Status: debugging reality
 
 <div align="center">
 
-<img src="https://github-readme-stats.vercel.app/api?username=YOUR_GITHUB_USERNAME&show_icons=true&theme=dracula&hide_border=true&bg_color=00000000&title_color=6C63FF&icon_color=6C63FF" height="165"/>
-<img src="https://github-readme-streak-stats.herokuapp.com/?user=YOUR_GITHUB_USERNAME&theme=dracula&hide_border=true&background=00000000&ring=6C63FF&fire=6C63FF" height="165"/>
+<img src="https://github-readme-stats.vercel.app/api?username=aditya-3301&show_icons=true&theme=dracula&hide_border=true&bg_color=00000000&title_color=6C63FF&icon_color=6C63FF" height="165"/>
+<img src="https://github-readme-streak-stats.herokuapp.com/?user=aditya-3301&theme=dracula&hide_border=true&background=00000000&ring=6C63FF&fire=6C63FF" height="165"/>
 
-<img src="https://github-readme-activity-graph.vercel.app/graph?username=YOUR_GITHUB_USERNAME&theme=react-dark&hide_border=true&bg_color=00000000&color=6C63FF&line=6C63FF&point=ffffff" width="100%"/>
+<img src="https://github-readme-activity-graph.vercel.app/graph?username=aditya-3301&theme=react-dark&hide_border=true&bg_color=00000000&color=6C63FF&line=6C63FF&point=ffffff" width="100%"/>
 
 </div>
 
@@ -75,8 +75,8 @@ Status: debugging reality
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/YOUR_GITHUB_USERNAME/output/snake-dark.svg" />
-  <img alt="snake" src="https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/YOUR_GITHUB_USERNAME/output/snake.svg" />
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/aditya-3301/aditya-3301/output/snake-dark.svg" />
+  <img alt="snake" src="https://raw.githubusercontent.com/aditya-3301/aditya-3301/output/snake.svg" />
 </picture>
 
 </div>
