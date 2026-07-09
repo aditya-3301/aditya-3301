@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Aditya Shankar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,500&family=Work+Sans:wght@400;500&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+Devanagari:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root{
+    --ink:#EDE6D6;
+    --ink-dim:#F0EDE6;
+    --bg:#171510;
+    --bg-raised:#1F1C15;
+    --moss:#8A9A5B;
+    --rust:#C1502E;
+    --amber:#D6A24C;
+    --teal:#4C8C86;
+    --clay:#B5654A;
+    --sage:#9CAF88;
+    --line: rgba(237,230,214,0.14);
+    
+    --nav-blur: 20px;
+    --nav-sat: 180%;
+    --nav-pad-v: 4px;
+    --nav-pad-h: 6px;
+    --nav-bg-1-a: 0.10;
+    --nav-bg-2-a: 0.03;
+  }
+  /* Section-based accent theming: shifts only --rust (used by section-num,
+     eyebrow, selection color, active-nav-pill contrast) as you scroll between
+     sections. Deliberately narrow in scope - --bg/--ink stay untouched so
+     contrast/readability elsewhere on the page can't be affected. Custom-property
+     transitions on non-numeric/color-typed vars aren't reliably animatable across
+     browsers without @property, so the shift is intentionally an instant swap
+     rather than a tween - still reads as a mood change since it's tied to scroll.*/
+  body.theme-projects{ --rust:#C1502E; }
+  body.theme-experience{ --rust:#B5654A; }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Work Sans', sans-serif;
+    overflow-x:hidden;
+  }
+  ::selection{ background:var(--rust); color:var(--bg); }
+
+  /* header */
+  header{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:28px 5vw; font-family:'JetBrains Mono', monospace; font-size:13px;
+    color:var(--ink-dim);
+  }
+  /* Scrollspy pill: a moss-colored slider that slides behind whichever nav link
+     ("Projects" / "About Me") is currently in view. Lives inside the real nav
+     markup (the <nav data-app-nav> block further down) as an absolutely
+     positioned <span class="nav-indicator">, and is driven by moveIndicator()
+     in the script at the bottom of the page. */
+  .nav-indicator{
+    position:absolute; height:32px; border-radius:999px;
+    background:var(--moss); opacity:0; z-index:0; top:4px; left:0;
+    pointer-events:none;
+  }
+  /* Text goes dark-on-moss when a link's pill is active. The link text itself
+     lives in a nested <span> with its own hardcoded color class, so the color
+     override has to target that span directly (not just the parent <a>). */
+  nav[data-app-nav] a.active span{ color:var(--bg) !important; }
+  .wave{ display:flex; align-items:center; gap:10px; color:var(--moss); }
+  .wave span{ font-size:16px; }
+  .clock{ text-align:right; line-height:1.2; }
+  .clock b{ color:var(--ink); font-size:16px; }
+
+  /* hero */
+  .hero{
+    min-height:78vh;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:0 5vw; position:relative;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:700; letter-spacing:.14em;
+    color:var(--rust); text-transform:uppercase; margin-bottom:22px;
+  }
+  .hero h1{
+    font-family:'Newsreader', serif; font-weight:600;
+    font-size:clamp(2.4rem, 7vw, 6.5rem);
+    line-height:0.96;
+    letter-spacing:-0.01em;
+    display:flex; flex-wrap:nowrap; align-items:baseline; justify-content:center;
+    gap:0.28em; max-width:100%;
+  }
+  .hero h1 em{ font-style:italic; font-weight:500; color:var(--moss); }
+  .letters{ display:inline-flex; flex-wrap:nowrap; flex-shrink:0; }
+  .letters .letter{ display:inline-block; transition:color .3s ease, transform .3s ease; cursor:default; }
+  .letters .letter:hover{ color:var(--hc); transform:translateY(-0.08em) rotate(-3deg); }
+  /* Fixed width sized for the widest cycling string (the CJK entries render wider
+     per character than the Latin ones). Without this, the box's width tracks
+     whatever word is currently showing, and since .hero h1 is a centered flex
+     row, that made the whole row re-center on every swap - visibly shifting
+     "Aditya" left/right as the surname changed length. A constant-width box
+     keeps the row's total width (and "Aditya"'s position) fixed regardless of
+     which language is currently displayed. */
+  .lang-cycle{
+    position:relative; display:inline-block; flex-shrink:0;
+    width:5.6em; text-align:left;
+    white-space:nowrap; word-break:keep-all; overflow-wrap:normal; overflow:visible;
+    font-size:0.68em; vertical-align:baseline; line-height:1.3;
+  }
+  .lang-cycle::after{
+    display:inline-block; white-space:nowrap; word-break:keep-all;
+    content:"Shankar";
+    animation:lang-cycle 24s linear infinite;
+    font-family:'Noto Sans Devanagari', 'Newsreader', serif;
+  }
+  /* content is a discrete (non-interpolable) property. If it's only declared at the
+     boundary keyframes (0/20/40/60%...), the browser is free to flip it at the
+     midpoint between those declarations - which lands mid-hold, at full opacity,
+     causing a visible snap instead of the intended invisible swap. Re-declaring
+     content at every keyframe pins it to the current word until the exact
+     opacity:0 keyframe, where the flip happens while invisible. */
+  /* Each 20%-wide language block now has FIVE points instead of four:
+     enter(0) -> fade-in-end(9) -> hold-end(13) -> fully-invisible dwell(19) -> swap(20).
+     That extra dwell keyframe holds opacity at true 0 for a beat, WITH THE OLD WORD
+     STILL SET, before content flips at the block boundary - so the swap always
+     happens after the text has visibly finished disappearing, not mid-fade. */
+  @keyframes lang-cycle{
+    0%{ content:"Shankar"; opacity:0; }
+    9%{ content:"Shankar"; opacity:1; }
+    13%{ content:"Shankar"; opacity:1; }
+    19%{ content:"Shankar"; opacity:0; }
+    20%{ content:"Шанкар"; opacity:0; }
+    29%{ content:"Шанкар"; opacity:1; }
+    33%{ content:"Шанкар"; opacity:1; }
+    39%{ content:"Шанкар"; opacity:0; }
+    40%{ content:"シャンカル"; opacity:0; }
+    49%{ content:"シャンカル"; opacity:1; }
+    53%{ content:"シャンカル"; opacity:1; }
+    59%{ content:"シャンカル"; opacity:0; }
+    60%{ content:"샹카르"; opacity:0; }
+    69%{ content:"샹카르"; opacity:1; }
+    73%{ content:"샹카르"; opacity:1; }
+    79%{ content:"샹카르"; opacity:0; }
+    80%{ content:"शंकर"; opacity:0; }
+    89%{ content:"शंकर"; opacity:1; }
+    93%{ content:"शंकर"; opacity:1; }
+    99%{ content:"शंकर"; opacity:0; }
+    100%{ content:"Shankar"; opacity:0; }
+  }
+  .tagline{
+    margin-top:26px; max-width:520px; color:var(--ink-dim);
+    font-size:16px; line-height:1.6;
+  }
+
+  /* field log ticker — signature element */
+  .fieldlog{
+    border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    padding:14px 0; overflow:hidden; white-space:nowrap; position:relative;
+    background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+    backdrop-filter:blur(12px) saturate(150%);
+    -webkit-backdrop-filter:blur(12px) saturate(150%);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .fieldlog-track{
+    display:inline-flex; gap:48px;
+  }
+  .fieldlog span{
+    font-family:'JetBrains Mono', monospace; font-size:12.5px; color:var(--ink-dim);
+  }
+  .fieldlog b{ color:var(--moss); font-weight:500; }
+
+
+  .scroll-progress{
+    position:fixed; top:0; left:0; width:100%; height:3px; z-index:80;
+    background:linear-gradient(90deg, var(--rust), var(--amber), var(--moss), var(--teal));
+    transform:scaleX(0); transform-origin:left center; pointer-events:none;
+  }
+
+  /* nav pill */
+  /* sections */
+  section{ padding:120px 5vw; max-width:1100px; margin:0 auto; }
+  .section-head{ display:flex; align-items:baseline; gap:16px; margin-bottom:56px; }
+  .section-num{ font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--rust); }
+  .section-head h2{ font-family:'Newsreader', serif; font-size:2.4rem; font-weight:600; }
+
+  .bg-image{
+    position:fixed; inset:0; z-index:-2; pointer-events:none;
+    background-image:url('image.jpg');
+    background-size:cover;
+    background-position:50% 50%;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  .specimen-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:18px; background:transparent; border:none; perspective: 1000px; }
+  @media (min-width: 768px) {
+    .specimen-grid.rail-mode {
+      display: flex;
+      flex-wrap: nowrap;
+      width: max-content;
+      gap: 32px;
+      padding-right: 12vw;
+    }
+    .specimen-grid.rail-mode .specimen {
+      width: 420px;
+      flex-shrink: 0;
+    }
+  }
+  .specimen{
+    display:block; text-decoration:none; color:inherit; position:relative;
+    --sp-blur: 3px;
+    --sp-sat: 180%;
+    transform-style: preserve-3d;
+    background: rgba(0,0,0,0.2);
+    backdrop-filter:url(#card-glass-distortion) blur(var(--sp-blur)) saturate(var(--sp-sat));
+    -webkit-backdrop-filter:url(#card-glass-distortion) blur(var(--sp-blur)) saturate(var(--sp-sat));
+    border:1px solid rgba(255,255,255,0.18);
+    border-radius:18px;
+    box-shadow:0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+    padding:32px; transition:.3s cubic-bezier(.2,.8,.2,1); cursor:pointer;
+    overflow:hidden;
+  }
+  .specimen > *{ position:relative; z-index:2; }
+  .specimen:hover{
+    background:rgba(0,0,0,0.15);
+    border-color:var(--moss);
+    transform:translateY(-6px);
+    box-shadow:0 16px 40px rgba(0,0,0,0.4), 0 0 0 1px var(--moss), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+  .specimen .arrow{
+    position:absolute; top:28px; right:28px; opacity:0; transform:translate(-4px,4px);
+    transition:.3s ease; color:var(--moss); font-size:18px;
+  }
+  .specimen:hover .arrow{ opacity:1; transform:translate(0,0); }
+  .specimen .tag{ font-family:'JetBrains Mono', monospace; font-size:12px; font-weight:700; color:var(--rust); letter-spacing:.08em; text-transform:uppercase; margin-bottom:14px; display:block; }
+  .specimen h3{ font-family:'Newsreader', serif; font-size:1.5rem; font-weight:500; margin-bottom:10px; }
+  .specimen p{ color:var(--ink-dim); font-size:14px; line-height:1.6; }
+
+  .about-bio{
+    font-family:'Newsreader', serif; font-size:1.15rem; line-height:1.7;
+    color:var(--ink); max-width:680px; margin-bottom:28px;
+  }
+  .about-tags{
+    display:flex; flex-wrap:wrap; gap:10px; margin-top:32px; margin-bottom:44px; clear:both; position:relative; z-index:1;
+  }
+  .tag-chip{
+    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.06em;
+    text-transform:uppercase; color:var(--ink);
+    border-radius:999px; padding:8px 16px;
+    background:rgba(0,0,0,0.25);
+    backdrop-filter:url(#card-glass-distortion) blur(3px) saturate(160%);
+    -webkit-backdrop-filter:url(#card-glass-distortion) blur(3px) saturate(160%);
+    border:1px solid rgba(255,255,255,0.12);
+    box-shadow:rgba(255,255,255,0.08) 0px 0px 0px 0.5px inset, rgba(0,0,0,0.1) 0px 4px 16px;
+    transition:.25s ease;
+  }
+  .tag-chip:hover{ box-shadow:rgba(255,255,255,0.15) 0px 0px 0px 0.5px inset, rgba(0,0,0,0.15) 0px 6px 20px; transform:translateY(-2px); color:var(--rust); }
+  .photo-cta{
+    display:inline-flex; align-items:center; gap:10px;
+    text-decoration:none; color:var(--ink); font-size:13px; font-weight:500;
+    padding:10px 20px; border-radius:999px;
+    background:rgba(0,0,0,0.2);
+    backdrop-filter:url(#glass-filter-_r_12b_) saturate(1);
+    -webkit-backdrop-filter:url(#glass-filter-_r_12b_) saturate(1);
+    box-shadow:rgba(255,255,255,0.1) 0px 0px 0px 0.5px inset, rgba(0,0,0,0.1) 0px 4px 16px;
+    transition:.25s ease;
+  }
+  .photo-cta:hover{ box-shadow:rgba(255,255,255,0.15) 0px 0px 0px 0.5px inset, rgba(0,0,0,0.15) 0px 6px 20px; transform:translateY(-2px); }
+  .photo-cta-arrow{ transition:.25s ease; }
+  .photo-cta:hover .photo-cta-arrow{ transform:translateX(3px); }
+  /* Flip-animated expand panel for the photo CTA. Kept in normal flow (never
+     display:none) at max-height:0/opacity:0 so Flip.getState() always has a
+     real box to measure before the class toggle - Flip can't smooth a jump
+     from/to a display:none element since that has no layout box at all. */
+  .photo-panel{
+    max-height:0; opacity:0; overflow:hidden;
+    padding:0 20px; border-radius:14px;
+    background:rgba(0,0,0,0.2); border:1px solid transparent;
+    color:var(--ink-dim); font-size:14px; line-height:1.6;
+    transition:opacity .3s ease, border-color .3s ease, background .3s ease;
+  }
+  .photo-panel.expanded{
+    margin-top:20px; max-height:900px; opacity:1; padding:20px;
+    border-width:0.5px; border-color:rgba(255,255,255,0.08);
+    background:rgba(0,0,0,0.25);
+    backdrop-filter:url(#glass-filter-photopanel) saturate(1);
+    -webkit-backdrop-filter:url(#glass-filter-photopanel) saturate(1);
+  }
+  .photo-grid{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+    gap:12px; margin-top:16px;
+  }
+  .photo-card{
+    aspect-ratio:4/5; border-radius:10px; overflow:hidden; position:relative;
+    background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.1);
+    backdrop-filter:url(#glass-filter-photopanel) saturate(1);
+    -webkit-backdrop-filter:url(#glass-filter-photopanel) saturate(1);
+    transition:transform .3s ease, opacity .3s ease;
+  }
+  .photo-card:hover{ transform:translateY(-3px); }
+  .photo-card img{ width:100%; height:100%; object-fit:cover; display:block; opacity:.9; }
+  .photo-card .photo-tag{
+    position:absolute; left:8px; bottom:8px; font-family:'JetBrains Mono', monospace;
+    font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink);
+    background:rgba(0,0,0,0.35); padding:3px 8px; border-radius:999px;
+  }
+  .photo-card.hidden-cat{ display:none; }
+  .photo-card{ cursor:zoom-in; }
+
+  .photo-lightbox{
+    position:fixed; inset:0; z-index:60; display:flex; align-items:center; justify-content:center;
+    padding:5vh 5vw; background:rgba(10,9,7,0.88);
+    opacity:0; pointer-events:none; transition:opacity .3s ease;
+  }
+  .photo-lightbox.visible{ opacity:1; pointer-events:auto; }
+  .photo-lightbox img{
+    max-width:100%; max-height:100%; border-radius:8px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.5);
+  }
+  .photo-lightbox-close{
+    position:absolute; top:24px; right:28px; width:40px; height:40px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.15); color:var(--ink);
+    font-size:20px; line-height:1;
+  }
+
+  /* Secondary glass bar: same pill/blur treatment as the main nav, but scoped
+     to photography categories. Sits directly under the main nav and only
+     shows once the photography section scrolls into view. */
+  .photo-subnav{
+    position:fixed; top:78px; left:0; right:0; z-index:24;
+    display:flex; justify-content:center; padding:0 16px;
+    opacity:0; transform:translateY(-8px); pointer-events:none;
+    transition:opacity .35s ease, transform .35s ease;
+  }
+  .photo-subnav.visible{ opacity:1; transform:translateY(0); pointer-events:auto; }
+  .photo-subnav-inner{
+    display:flex; align-items:center; gap:2px; padding:6px; border-radius:18px;
+    background:rgba(0,0,0,0.2);
+    backdrop-filter:url(#glass-filter-_r_12b_) saturate(1);
+    -webkit-backdrop-filter:url(#glass-filter-_r_12b_) saturate(1);
+    box-shadow:rgba(255,255,255,0.1) 0px 0px 0px 0.5px inset, rgba(0,0,0,0.1) 0px 4px 16px;
+  }
+  .photo-subnav-cat{
+    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.04em;
+    text-transform:uppercase; color:rgba(237,230,214,0.7); background:none; border:none;
+    padding:7px 14px; border-radius:14px; cursor:pointer; transition:.25s ease;
+  }
+  .photo-subnav-cat:hover{ color:var(--ink); }
+  .photo-subnav-cat.active{ color:var(--ink); background:rgba(255,255,255,0.1); }
+  .site-footer{
+    display:flex; align-items:center; gap:16px;
+    padding:40px 5vw 20vh; max-width:1100px; margin:0 auto;
+    font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--ink-dim);
+  }
+  .footer-mark{ color:var(--rust); letter-spacing:.05em; }
+  .footer-line{ flex:1; height:1px; background:var(--line); transform-origin:left center; }
+  .footer-year{ opacity:.6; }
+
+  /* custom cursor */
+  body.has-custom-cursor { cursor: none; }
+  body.has-custom-cursor a, body.has-custom-cursor .specimen, body.has-custom-cursor .letters .letter { cursor: none; }
+  .cursor-dot, .cursor-ring {
+    position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999;
+    border-radius: 50%; transform: translate(-50%, -50%);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  body.has-custom-cursor .cursor-dot, body.has-custom-cursor .cursor-ring { opacity: 1; }
+  .cursor-dot { width: 6px; height: 6px; background: #fff; mix-blend-mode: difference; }
+  .cursor-ring {
+    width: 24px; height: 24px; border: 1.5px solid #fff;
+    mix-blend-mode: difference;
+    box-shadow: 0 0 0 0 rgba(255,255,255,0.25);
+    transition: width 0.3s, height 0.3s, border-color 0.3s, background-color 0.3s, box-shadow 0.3s;
+  }
+  .cursor-ripple {
+    position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9998;
+    width: 10px; height: 10px; border-radius: 50%;
+    border: 1.5px solid var(--moss); transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+</style>
+</head>
+<body>
+  <svg width="1" height="1" style="position:absolute; overflow:hidden;" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <defs>
+      <filter id="nav-glass-distortion" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+        <feImage x="0" y="0" width="100%" height="100%" preserveAspectRatio="none" result="map"
+          href="data:image/svg+xml,%3Csvg viewBox='0 0 200 48' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='rg' x1='100%25' y1='0%25' x2='0%25' y2='0%25'%3E%3Cstop offset='0%25' stop-color='%230000'/%3E%3Cstop offset='100%25' stop-color='red'/%3E%3C/linearGradient%3E%3ClinearGradient id='gg' x1='0%25' y1='100%25' x2='0%25' y2='0%25'%3E%3Cstop offset='0%25' stop-color='%230000'/%3E%3Cstop offset='100%25' stop-color='%2300ff00'/%3E%3C/linearGradient%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%230000'/%3E%3Cstop offset='100%25' stop-color='blue'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='200' height='48' fill='black'/%3E%3Crect width='200' height='48' rx='20' fill='url(%23rg)'/%3E%3Crect width='200' height='48' rx='20' fill='url(%23gg)' style='mix-blend-mode:screen'/%3E%3Crect width='200' height='48' rx='20' fill='url(%23bg)' style='mix-blend-mode:screen'/%3E%3Crect x='1.5' y='1.5' width='197' height='45' rx='20' fill='hsl(0 0%25 50%25 / 0.9)' style='filter:blur(7px)'/%3E%3C/svg%3E"
+          xlink:href="data:image/svg+xml,%3Csvg viewBox='0 0 200 48' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='rg' x1='100%25' y1='0%25' x2='0%25' y2='0%25'%3E%3Cstop offset='0%25' stop-color='%230000'/%3E%3Cstop offset='100%25' stop-color='red'/%3E%3C/linearGradient%3E%3ClinearGradient id='gg' x1='0%25' y1='100%25' x2='0%25' y2='0%25'%3E%3Cstop offset='0%25' stop-color='%230000'/%3E%3Cstop offset='100%25' stop-color='%2300ff00'/%3E%3C/linearGradient%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%230000'/%3E%3Cstop offset='100%25' stop-color='blue'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='200' height='48' fill='black'/%3E%3Crect width='200' height='48' rx='20' fill='url(%23rg)'/%3E%3Crect width='200' height='48' rx='20' fill='url(%23gg)' style='mix-blend-mode:screen'/%3E%3Crect width='200' height='48' rx='20' fill='url(%23bg)' style='mix-blend-mode:screen'/%3E%3Crect x='1.5' y='1.5' width='197' height='45' rx='20' fill='hsl(0 0%25 50%25 / 0.9)' style='filter:blur(7px)'/%3E%3C/svg%3E" />
+        <feDisplacementMap in="SourceGraphic" in2="map" result="dispRed" scale="-180" xChannelSelector="R" yChannelSelector="G" />
+        <feColorMatrix in="dispRed" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="red" />
+        <feDisplacementMap in="SourceGraphic" in2="map" result="dispGreen" scale="-170" xChannelSelector="R" yChannelSelector="G" />
+        <feColorMatrix in="dispGreen" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="green" />
+        <feDisplacementMap in="SourceGraphic" in2="map" result="dispBlue" scale="-160" xChannelSelector="R" yChannelSelector="G" />
+        <feColorMatrix in="dispBlue" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="blue" />
+        <feBlend in="red" in2="green" mode="screen" result="rg" />
+        <feBlend in="rg" in2="blue" mode="screen" result="output" />
+        <feGaussianBlur in="output" stdDeviation="0.5" />
+      </filter>
+      <filter id="card-glass-distortion" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+        <feImage x="0" y="0" width="100%" height="100%" preserveAspectRatio="none" result="map"
+          href="data:image/svg+xml,%3Csvg viewBox='0 0 400 280' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='rg' x1='100%25' y1='0%25' x2='0%25' y2='0%25'%3E%3Cstop offset='0%25' stop-color='%230000'/%3E%3Cstop offset='100%25' stop-color='red'/%3E%3C/linearGradient%3E%3ClinearGradient id='gg' x1='0%25' y1='100%25' x2='0%25' y2='0%25'%3E%3Cstop offset='0%25' stop-color='%230000'/%3E%3Cstop offset='100%25' stop-color='%2300ff00'/%3E%3C/linearGradient%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%230000'/%3E%3Cstop offset='100%25' stop-color='blue'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='400' height='280' fill='black'/%3E%3Crect width='400' height='280' rx='18' fill='url(%23rg)'/%3E%3Crect width='400' height='280' rx='18' fill='url(%23gg)' style='mix-blend-mode:screen'/%3E%3Crect width='400' height='280' rx='18' fill='url(%23bg)' style='mix-blend-mode:screen'/%3E%3Crect x='45' y='45' width='310' height='190' rx='16' fill='hsl(0 0%25 50%25 / 0.95)' style='filter:blur(28px)'/%3E%3C/svg%3E"
+          xlink:href="data:image/svg+xml,%3Csvg viewBox='0 0 400 280' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='rg' x1='100%25' y1='0%25' x2='0%25' y2='0%25'%3E%3Cstop offset='0%25' stop-color='%230000'/%3E%3Cstop offset='100%25' stop-color='red'/%3E%3C/linearGradient%3E%3ClinearGradient id='gg' x1='0%25' y1='100%25' x2='0%25' y2='0%25'%3E%3Cstop offset='0%25' stop-color='%230000'/%3E%3Cstop offset='100%25' stop-color='%2300ff00'/%3E%3C/linearGradient%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%230000'/%3E%3Cstop offset='100%25' stop-color='blue'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='400' height='280' fill='black'/%3E%3Crect width='400' height='280' rx='18' fill='url(%23rg)'/%3E%3Crect width='400' height='280' rx='18' fill='url(%23gg)' style='mix-blend-mode:screen'/%3E%3Crect width='400' height='280' rx='18' fill='url(%23bg)' style='mix-blend-mode:screen'/%3E%3Crect x='45' y='45' width='310' height='190' rx='16' fill='hsl(0 0%25 50%25 / 0.95)' style='filter:blur(28px)'/%3E%3C/svg%3E" />
+        <feDisplacementMap in="SourceGraphic" in2="map" result="dispRed" scale="-90" xChannelSelector="R" yChannelSelector="G" />
+        <feColorMatrix in="dispRed" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="red" />
+        <feDisplacementMap in="SourceGraphic" in2="map" result="dispGreen" scale="-80" xChannelSelector="R" yChannelSelector="G" />
+        <feColorMatrix in="dispGreen" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="green" />
+        <feDisplacementMap in="SourceGraphic" in2="map" result="dispBlue" scale="-70" xChannelSelector="R" yChannelSelector="G" />
+        <feColorMatrix in="dispBlue" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="blue" />
+        <feBlend in="red" in2="green" mode="screen" result="rg" />
+        <feBlend in="rg" in2="blue" mode="screen" result="output" />
+        <feGaussianBlur in="output" stdDeviation="0.5" />
+      </filter>
+    </defs>
+  </svg>
+  <div class="cursor-dot"></div>
+  <div class="cursor-ring"></div>
+  <div class="scroll-progress"></div>
+
+
+<canvas id="particle-bg" style="position:fixed; inset:0; z-index:-1; pointer-events:none;"></canvas>
+
+<div class="bg-image"></div>
+
+<script>
+// Lightweight particle-network background (dots + connecting lines + mouse-grab),
+// same look/feel as particles.js but self-contained so there's no extra library to load.
+(() => {
+  const canvas = document.getElementById('particle-bg');
+  const ctx = canvas.getContext('2d');
+  const colors = ['#8A9A5B', '#C1502E', '#D6A24C', '#4C8C86']; // moss, rust, amber, teal
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let w, h, dpr, particles = [];
+  const mouse = { x: null, y: null };
+  const LINK_DIST = 140;
+  const GRAB_DIST = 160;
+
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    w = canvas.width = innerWidth * dpr;
+    h = canvas.height = innerHeight * dpr;
+    canvas.style.width = innerWidth + 'px';
+    canvas.style.height = innerHeight + 'px';
+    const count = Math.min(90, Math.floor((innerWidth * innerHeight) / 16000));
+    particles = Array.from({ length: count }, () => ({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      vx: (Math.random() - 0.5) * 0.3 * dpr,
+      vy: (Math.random() - 0.5) * 0.3 * dpr,
+      r: (Math.random() * 1.5 + 1) * dpr,
+      color: colors[Math.floor(Math.random() * colors.length)]
+    }));
+    // extra cluster near the top-center, around the nav pill, so the glass distortion has more dots to refract
+    const topBandCount = 25;
+    const topBandHeight = 140 * dpr;
+    const centerBandWidth = w * 0.32;
+    const centerBandStart = (w - centerBandWidth) / 2;
+    for (let i = 0; i < topBandCount; i++) {
+      particles.push({
+        x: centerBandStart + Math.random() * centerBandWidth,
+        y: Math.random() * topBandHeight,
+        vx: (Math.random() - 0.5) * 0.3 * dpr,
+        vy: (Math.random() - 0.5) * 0.15 * dpr,
+        r: (Math.random() * 1.5 + 1) * dpr,
+        color: colors[Math.floor(Math.random() * colors.length)]
+      });
+    }
+  }
+
+  function step() {
+    ctx.clearRect(0, 0, w, h);
+    for (const p of particles) {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0 || p.x > w) p.vx *= -1;
+      if (p.y < 0 || p.y > h) p.vy *= -1;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = 0.95;
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const a = particles[i], b = particles[j];
+        const dx = a.x - b.x, dy = a.y - b.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < LINK_DIST * dpr) {
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.strokeStyle = 'rgba(180,180,170,' + (1 - dist / (LINK_DIST * dpr)) * .4 + ')';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+      if (mouse.x != null) {
+        const dx = particles[i].x - mouse.x, dy = particles[i].y - mouse.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < GRAB_DIST * dpr) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(mouse.x, mouse.y);
+          ctx.strokeStyle = 'rgba(140,180,255,' + (1 - dist / (GRAB_DIST * dpr)) * .8 + ')';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+    }
+    if (!reduceMotion) requestAnimationFrame(step);
+  }
+
+  window.addEventListener('resize', resize);
+  window.addEventListener('mousemove', e => { mouse.x = e.clientX * dpr; mouse.y = e.clientY * dpr; });
+  window.addEventListener('mouseleave', () => { mouse.x = null; mouse.y = null; });
+
+  resize();
+  step(); // draw at least one static frame even if reduced motion is on
+})();
+</script>
+
+<nav data-app-nav=true class="fixed top-6 left-0 right-0 z-[25] flex justify-center px-4"><div class="hidden md:block"><div class="relative flex items-center justify-center overflow-hidden transition-opacity duration-[260ms] ease-out focus-visible:outline-2 focus-visible:outline-[#0A84FF] focus-visible:outline-offset-2 gap-1 px-1 py-1" style="width:auto;height:auto;border-radius:20px;--glass-frost:0.2;--glass-saturation:1;will-change:backdrop-filter,transform;transform:translateZ(0px);backface-visibility:hidden;perspective:1000px;contain:layout style paint;background:rgba(0,0,0,0.2);backdrop-filter:url(#glass-filter-_r_12b_)saturate(1);box-shadow:rgba(255,255,255,0.1) 0px 0px 0px 0.5px inset,rgba(0,0,0,0.1) 0px 4px 16px,rgba(0,0,0,0.08) 0px 8px 24px"><svg class="w-full h-full pointer-events-none absolute inset-0 opacity-0 -z-10" xmlns=http://www.w3.org/2000/svg style=transform:translateZ(0px);will-change:transform><defs><filter id=glass-filter-_r_12b_ color-interpolation-filters=sRGB x=0% y=0% width=100% height=100%><feimage x=0 y=0 width=100% height=100% preserveAspectRatio=none result=map href=data:image/svg+xml,%0A%20%20%20%20%20%20%3Csvg%20viewBox%3D%220%200%20260%2048%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%20%20%20%20%20%20%20%20%3Cdefs%3E%0A%20%20%20%20%20%20%20%20%20%20%3ClinearGradient%20id%3D%22red-grad-_r_12b_%22%20x1%3D%22100%25%22%20y1%3D%220%25%22%20x2%3D%220%25%22%20y2%3D%220%25%22%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%230000%22%2F%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22red%22%2F%3E%0A%20%20%20%20%20%20%20%20%20%20%3C%2FlinearGradient%3E%0A%20%20%20%20%20%20%20%20%20%20%3ClinearGradient%20id%3D%22blue-grad-_r_12b_%22%20x1%3D%220%25%22%20y1%3D%220%25%22%20x2%3D%220%25%22%20y2%3D%22100%25%22%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%230000%22%2F%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22blue%22%2F%3E%0A%20%20%20%20%20%20%20%20%20%20%3C%2FlinearGradient%3E%0A%20%20%20%20%20%20%20%20%3C%2Fdefs%3E%0A%20%20%20%20%20%20%20%20%3Crect%20x%3D%220%22%20y%3D%220%22%20width%3D%22260%22%20height%3D%2248%22%20fill%3D%22black%22%3E%3C%2Frect%3E%0A%20%20%20%20%20%20%20%20%3Crect%20x%3D%220%22%20y%3D%220%22%20width%3D%22260%22%20height%3D%2248%22%20rx%3D%2220%22%20fill%3D%22url(%23red-grad-_r_12b_)%22%20%2F%3E%0A%20%20%20%20%20%20%20%20%3Crect%20x%3D%220%22%20y%3D%220%22%20width%3D%22260%22%20height%3D%2248%22%20rx%3D%2220%22%20fill%3D%22url(%23blue-grad-_r_12b_)%22%20style%3D%22mix-blend-mode%3A%20screen%22%20%2F%3E%0A%20%20%20%20%20%20%20%20%3Crect%20x%3D%221.6800000000000002%22%20y%3D%221.6800000000000002%22%20width%3D%22256.64%22%20height%3D%2244.64%22%20rx%3D%2220%22%20fill%3D%22hsl(0%200%25%2050%25%20%2F%200.93)%22%20style%3D%22filter%3Ablur(7px)%22%20%2F%3E%0A%20%20%20%20%20%20%3C%2Fsvg%3E%0A%20%20%20%20></feimage><fedisplacementmap in=SourceGraphic in2=map id=redchannel result=dispRed scale=-180 xChannelSelector=R yChannelSelector=G></fedisplacementmap><fecolormatrix in=dispRed type=matrix values="1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" result=red></fecolormatrix><fedisplacementmap in=SourceGraphic in2=map id=greenchannel result=dispGreen scale=-170 xChannelSelector=R yChannelSelector=G></fedisplacementmap><fecolormatrix in=dispGreen type=matrix values="0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0" result=green></fecolormatrix><fedisplacementmap in=SourceGraphic in2=map id=bluechannel result=dispBlue scale=-160 xChannelSelector=R yChannelSelector=G></fedisplacementmap><fecolormatrix in=dispBlue type=matrix values="0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0" result=blue></fecolormatrix><feblend in=red in2=green mode=screen result=rg></feblend><feblend in=rg in2=blue mode=screen result=output></feblend><fegaussianblur in=output stdDeviation=0.5></fegaussianblur></filter></defs></svg><div class="w-full h-full flex items-center justify-center p-1 rounded-[inherit] relative z-10"><a class="flex items-center px-2 mr-1" href=#><span class="relative z-10 text-[13px] font-medium transition-colors text-white" style="font-family:'Newsreader',serif;font-size:1.1rem;">Aditya</span></a><div class="flex items-center relative"><span class="nav-indicator"></span><a class="relative px-3 py-1.5" href=#projects data-nav="projects"><span class="relative z-10 text-[13px] font-medium transition-colors text-white">Projects</span></a><a class="relative px-3 py-1.5" href=#experience data-nav="experience"><span class="relative z-10 text-[13px] font-medium transition-colors text-white/70 hover:text-white">About Me</span></a></div></div></div></div><div class="flex md:hidden sf-hidden"></div><div class="fixed bottom-4 left-0 right-0 z-[25] flex justify-center px-4 md:hidden sf-hidden"></div></nav>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="glass-filter-photopanel" color-interpolation-filters="sRGB" x="0%" y="0%" width="100%" height="100%">
+      <feImage x="0" y="0" width="100%" height="100%" preserveAspectRatio="none" result="map" href="data:image/svg+xml,%0A%20%20%20%20%20%20%3Csvg%20viewBox%3D%220%200%20260%2048%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%20%20%20%20%20%20%20%20%3Cdefs%3E%0A%20%20%20%20%20%20%20%20%20%20%3ClinearGradient%20id%3D%22red-grad-photopanel%22%20x1%3D%22100%25%22%20y1%3D%220%25%22%20x2%3D%220%25%22%20y2%3D%220%25%22%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%230000%22%2F%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22red%22%2F%3E%0A%20%20%20%20%20%20%20%20%20%20%3C%2FlinearGradient%3E%0A%20%20%20%20%20%20%20%20%20%20%3ClinearGradient%20id%3D%22blue-grad-photopanel%22%20x1%3D%220%25%22%20y1%3D%220%25%22%20x2%3D%220%25%22%20y2%3D%22100%25%22%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%230000%22%2F%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22blue%22%2F%3E%0A%20%20%20%20%20%20%20%20%20%20%3C%2FlinearGradient%3E%0A%20%20%20%20%20%20%20%20%3C%2Fdefs%3E%0A%20%20%20%20%20%20%20%20%3Crect%20x%3D%220%22%20y%3D%220%22%20width%3D%22260%22%20height%3D%2248%22%20fill%3D%22black%22%3E%3C%2Frect%3E%0A%20%20%20%20%20%20%20%20%3Crect%20x%3D%220%22%20y%3D%220%22%20width%3D%22260%22%20height%3D%2248%22%20rx%3D%2220%22%20fill%3D%22url(%23red-grad-photopanel)%22%20%2F%3E%0A%20%20%20%20%20%20%20%20%3Crect%20x%3D%220%22%20y%3D%220%22%20width%3D%22260%22%20height%3D%2248%22%20rx%3D%2220%22%20fill%3D%22url(%23blue-grad-photopanel)%22%20style%3D%22mix-blend-mode%3A%20screen%22%20%2F%3E%0A%20%20%20%20%20%20%20%20%3Crect%20x%3D%221.68%22%20y%3D%221.68%22%20width%3D%22256.64%22%20height%3D%2244.64%22%20rx%3D%2220%22%20fill%3D%22hsl(0%200%25%2050%25%20%2F%200.93)%22%20style%3D%22filter%3Ablur(7px)%22%20%2F%3E%0A%20%20%20%20%20%20%3C%2Fsvg%3E%0A%20%20%20%20" />
+      <feDisplacementMap in="SourceGraphic" in2="map" id="redchannel-pp" result="dispRed" scale="-42.5" xChannelSelector="R" yChannelSelector="G"></feDisplacementMap>
+      <feColorMatrix in="dispRed" type="matrix" values="1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" result="red"></feColorMatrix>
+      <feDisplacementMap in="SourceGraphic" in2="map" id="greenchannel-pp" result="dispGreen" scale="-40" xChannelSelector="R" yChannelSelector="G"></feDisplacementMap>
+      <feColorMatrix in="dispGreen" type="matrix" values="0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0" result="green"></feColorMatrix>
+      <feDisplacementMap in="SourceGraphic" in2="map" id="bluechannel-pp" result="dispBlue" scale="-37.5" xChannelSelector="R" yChannelSelector="G"></feDisplacementMap>
+      <feColorMatrix in="dispBlue" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0" result="blue"></feColorMatrix>
+      <feBlend in="red" in2="green" mode="screen" result="rg"></feBlend>
+      <feBlend in="rg" in2="blue" mode="screen" result="output"></feBlend>
+      <feGaussianBlur in="output" stdDeviation="0.5"></feGaussianBlur>
+    </filter>
+  </defs>
+</svg>
+
+<nav class="photo-subnav" id="photoSubnav">
+  <div class="photo-subnav-inner">
+    <button class="photo-subnav-cat active" data-cat="all">All</button>
+    <button class="photo-subnav-cat" data-cat="Astro">Astro</button>
+    <button class="photo-subnav-cat" data-cat="Nature">Street</button>
+    <button class="photo-subnav-cat" data-cat="landscape">Landscape</button>
+  </div>
+</nav>
+
+<header>
+  <div class="wave"><span></span></div>
+  <div class="clock" id="clock"><b>--:--</b><br/>-- --</div>
+</header>
+
+<section class="hero">
+  <div class="eyebrow">I'm</div>
+  <h1><span class="letters"><span class="letter" style="--hc:var(--rust)">A</span><span class="letter" style="--hc:var(--moss)">d</span><span class="letter" style="--hc:var(--amber)">i</span><span class="letter" style="--hc:var(--teal)">t</span><span class="letter" style="--hc:var(--clay)">y</span><span class="letter" style="--hc:var(--sage)">a</span></span> <em class="lang-cycle"></em></h1>
+  <p class="tagline">Student at BITS Pilani, currently cataloguing neural nets and transformers.
+  Off the clock: Trying Astrophotography and reading too much into chemistry.</p>
+</section>
+
+<div class="fieldlog">
+  <div class="fieldlog-track">
+    <span><b>01:20</b> Spotted: Andromeda Galaxy</span>
+    <span><b>02:45</b> Spotted: Geminid Meteroid Showers</span>
+    <span><b>03:15</b> Spotted: Sagittarius A*</span>
+    <span><b>03:50</b> Spotted: Long Exposure Star Trails</span>
+    <span><b>04:30</b> Spotted: Jupiter, Ganymede and Io</span>
+    <span><b>05:10</b> Spotted: Waning Crescent Moon</span>
+    <span><b>06:05</b> Spotted: Backlit Dew Drops</span>
+    <span><b>06:20</b> Spotted: Golden Hour Silhouettes</span>
+    <span><b>06:45</b> Spotted: Purple Sunbird</span>
+    <span><b>07:15</b> Spotted: Osprey</span>
+    <span><b>11:40</b> Spotted: Sun Spots</span> 
+  </div>
+</div>
+
+<section id="projects">
+  <div class="section-head"><span class="section-num">01</span><h2>Projects</h2></div>
+  <div class="specimen-grid">
+    <a class="specimen" href="https://github.com/aditya-3301/MusiCo" target="_blank" rel="noopener noreferrer">
+      <span class="tag">Web</span>
+      <h3>Personal Music Player</h3>
+      <p>Purely built out of spite because Spotify ads got annoying. HTML/CSS/JS, deployed on Vercel.</p>
+      <span class="arrow">↗</span>
+    </a>
+    <a class="specimen" href="https://github.com/aditya-3301/GPT-2" target="_blank" rel="noopener noreferrer">
+      <span class="tag">Natural Language Processing</span>
+      <h3>GPT-2, from scratch</h3>
+      <p>Mini GPT-2 in raw PyTorch custom tokenizer, multi attention. No HuggingFace, pure math. Trained on Sherlock Holmes.</p>
+      <span class="arrow">↗</span>
+    </a>
+    <a class="specimen" href="https://github.com/aditya-3301/Disease" target="_blank" rel="noopener noreferrer">
+      <span class="tag">Bioinformatics</span>
+      <h3>Huntington's Classifier</h3>
+      <p>Implemented a Research paper's (On Alzheimer's DIsease) workflow on Huntington's Disease gene expression data. SVM hit 0.996 test AUC.</p>
+      <span class="arrow">↗</span>
+    </a>
+    <a class="specimen" href="https://github.com/aditya-3301/LLM-accelerated-property-finder" target="_blank" rel="noopener noreferrer">
+      <span class="tag">LLM pipeline</span>
+      <h3>Drug Descriptor Extractor</h3>
+      <p>Drug descriptor extraction and verification pipeline for physicochemical drug properties, run locally on dual 4090s.</p>
+      <span class="arrow">↗</span>
+    </a>
+  </div>
+</section>
+
+<section id="experience">
+  <div class="section-head"><span class="section-num">02</span><h2>About Me</h2></div>
+
+  <p class="about-bio">
+    A large part of my time is invested in photography which switches between a hobby and a professional act.
+  </p>
+
+
+  <div class="about-tags">
+    <span class="tag-chip">PyTorch</span>
+    <span class="tag-chip">Classical ML</span>
+    <span class="tag-chip">NumPy | Pandas</span>
+    <span class="tag-chip">Feature Engineering & Data Mining</span>
+    <span class="tag-chip">C | Data Structures</span>
+    <span class="tag-chip">Node</span>
+    <span class="tag-chip">Web Dev</span>
+    <span class="tag-chip">Exploring RAG Systems</span>
+  </div>
+
+  <a href="#" class="photo-cta" id="photoCta">
+    <span>📷 View Photography</span>
+    <span class="photo-cta-arrow">→</span>
+  </a>
+  <div class="photo-panel" id="photoPanel">
+    <div class="photo-grid" id="photoGrid">
+      <div class="photo-card" data-cat="Nature"><img data-full="https://picsum.photos/seed/astro1/1600/2000" src="https://picsum.photos/seed/astro1/400/500" alt="" loading="lazy"><span class="photo-tag">Nature</span></div>
+      <div class="photo-card" data-cat="Nature"><img data-full="https://picsum.photos/seed/astro2/1600/2000" src="https://picsum.photos/seed/astro2/400/500" alt="" loading="lazy"><span class="photo-tag">Nature</span></div>
+      <div class="photo-card" data-cat="Nature"><img data-full="https://picsum.photos/seed/street1/1600/2000" src="https://picsum.photos/seed/street1/400/500" alt="" loading="lazy"><span class="photo-tag">Nature</span></div>
+      <div class="photo-card" data-cat="Nature"><img data-full="https://picsum.photos/seed/street2/1600/2000" src="https://picsum.photos/seed/street2/400/500" alt="" loading="lazy"><span class="photo-tag">Nature</span></div>
+      <div class="photo-card" data-cat="landscape"><img data-full="https://picsum.photos/seed/portrait1/1600/2000" src="https://picsum.photos/seed/portrait1/400/500" alt="" loading="lazy"><span class="photo-tag">Landscape</span></div>
+      <div class="photo-card" data-cat="landscape"><img data-full="https://picsum.photos/seed/landscape1/1600/2000" src="https://picsum.photos/seed/landscape1/400/500" alt="" loading="lazy"><span class="photo-tag">Landscape</span></div>
+      <div class="photo-card" data-cat="landscape"><img data-full="https://picsum.photos/seed/landscape2/1600/2000" src="https://picsum.photos/seed/landscape2/400/500" alt="" loading="lazy"><span class="photo-tag">Landscape</span></div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <span class="footer-mark">~AS</span>
+  <span class="footer-line"></span>
+  <span class="footer-year"></span>
+</footer>
+
+<div class="photo-lightbox" id="photoLightbox">
+  <span class="photo-lightbox-close" id="photoLightboxClose">×</span>
+  <img id="photoLightboxImg" src="" alt="">
+</div>
+
+<script>
+  function tick(){
+    const d = new Date();
+    let h = d.getHours(), m = d.getMinutes();
+    const ampm = h >= 12 ? 'pm' : 'am';
+    h = h % 12 || 12;
+    const time = `${h}:${m.toString().padStart(2,'0')}`;
+    const date = d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+    document.getElementById('clock').innerHTML = `<b>${time}</b> ${ampm}<br/>${date}`;
+  }
+  tick(); setInterval(tick, 1000*30);
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Flip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Draggable.min.js"></script>
+<script src="https://assets.codepen.io/16327/InertiaPlugin.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
+<script>
+(function(){
+  if (typeof gsap === 'undefined') return;
+  gsap.registerPlugin(ScrollTrigger);
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* 1. Smooth scroll base (Lenis + GSAP ticker) */
+  let lenis;
+  if (!reduceMotion && typeof Lenis !== 'undefined'){
+    lenis = new Lenis({ duration: 1.05, smoothWheel: true });
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add((time)=>{ lenis.raf(time * 1000); });
+    gsap.ticker.lagSmoothing(0);
+  }
+
+  /* 14. SplitText Helper (Feature 4) */
+  function wrapWords(selector) {
+    document.querySelectorAll(selector).forEach(el => {
+      const text = el.innerText;
+      el.innerHTML = '';
+      el.style.perspective = '1000px';
+      el.style.transformStyle = 'preserve-3d';
+      
+      let html = '';
+      text.split(/(\s+)/).forEach(part => {
+        if (part.trim() === '') {
+          html += part;
+        } else {
+          html += `<span class="word" style="display:inline-block">${part}</span>`;
+        }
+      });
+      el.innerHTML = html;
+    });
+  }
+  wrapWords('.tagline, .specimen p');
+
+  /* 2. Hero entrance: letters stagger, then eyebrow/tagline */
+  const tl = gsap.timeline({ defaults:{ ease:'power3.out' } });
+  tl.set('.letters .letter, .lang-cycle, .eyebrow, .tagline .word', { opacity:0 })
+    .set('.letters .letter', { y:24 })
+    .set('.eyebrow', { y:-8 })
+    .set('.tagline .word', { y:20, rotationX: -40 })
+    .to('.letters .letter', { opacity:1, y:0, duration:.7, stagger:.06 }, 0.1)
+    .to('.lang-cycle', { opacity:1, duration:.7 }, 0.35)
+    .to('.eyebrow', { opacity:1, y:0, duration:.5 }, 0)
+    .to('.tagline .word', { opacity:1, y:0, rotationX: 0, duration:.6, stagger:0.02 }, 0.55);
+
+  /* 7. Pinned hero moment: eyebrow + tagline crossfade out while pinned */
+  /* CRITICAL: This must be declared before elements below it so pinSpacing is calculated correctly */
+  let heroPin;
+  if (!reduceMotion){
+    heroPin = ScrollTrigger.create({
+      trigger: '.hero', start:'top top', end:'+=60%', pin:true, pinSpacing:true,
+      onUpdate: (self)=>{
+        gsap.to('.eyebrow, .tagline', { opacity: 1 - self.progress, duration:.1, overwrite:'auto' });
+        gsap.to('.hero h1', { scale: 1 - self.progress*0.08, duration:.1, overwrite:'auto' });
+      }
+    });
+
+    // 15. Scroll-Scrubbed Name Morph (Feature 5)
+    ScrollTrigger.create({
+      trigger: '.hero',
+      start: () => heroPin.end,
+      end: () => heroPin.end + window.innerHeight * 0.3,
+      scrub: true,
+      animation: gsap.timeline()
+        .to('.hero h1', { opacity: 0, scale: 0.6, y: 50, duration: 1 }, 0)
+    });
+  }
+
+  /* 9. Liquid Nav Morph on Scroll */
+  gsap.to(':root', {
+    '--nav-blur': '32px',
+    '--nav-sat': '220%',
+    '--nav-pad-v': '6px',
+    '--nav-pad-h': '10px',
+    '--nav-bg-1-a': 0.15,
+    '--nav-bg-2-a': 0.06,
+    ease: "power1.inOut",
+    scrollTrigger: {
+      trigger: 'body',
+      start: "top -10%",
+      end: "top -40%",
+      scrub: true
+    }
+  });
+
+  /* Section-based accent theming: toggles the scoped theme-* class from the
+     CSS above as each section crosses the middle of the viewport. toggleClass
+     handles add/remove on every direction (enter, enter-back, leave, leave-back)
+     automatically, so the two classes can't stack or get stuck on one another. */
+  ['projects','experience'].forEach(id=>{
+    const section = document.getElementById(id);
+    if (!section) return;
+    ScrollTrigger.create({
+      trigger: section, start:'top 60%', end:'bottom 60%',
+      toggleClass: { targets: 'body', className: `theme-${id}` }
+    });
+  });
+
+  /* 16. Background parallax: subtle vertical pan on the fixed backdrop image,
+     tied to overall scroll position. background-size:cover means the image
+     always overflows the viewport in at least one axis, so a modest pan never
+     reveals empty edges. Replaces an earlier per-section parallax attempt that
+     fought with the projects rail pin and got removed. */
+  gsap.to('.bg-image', {
+    backgroundPositionY: '65%',
+    ease: 'none',
+    scrollTrigger: { trigger: 'body', start: 'top top', end: 'bottom bottom', scrub: 0.6 }
+  });
+
+  /* Footer line: draws in from the left instead of just appearing, once the
+     footer scrolls into view. transform-origin:left is set in the CSS above. */
+  gsap.set('.footer-line', { scaleX: 0 });
+  ScrollTrigger.create({
+    trigger: '.site-footer', start: 'top 95%',
+    onEnter: () => gsap.to('.footer-line', { scaleX: 1, duration: 1, ease: 'power3.out', overwrite:'auto' }),
+    onEnterBack: () => gsap.to('.footer-line', { scaleX: 1, duration: 1, ease: 'power3.out', overwrite:'auto' })
+  });
+
+  /* 18. ScrollTrigger-Driven Theme Intensity (Feature 8) — removed, was glow-only */
+
+  /* 4. Section reveals: fade + rise, staggered + Text Scramble */
+  const scrambleChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*';
+  
+  document.querySelectorAll('.section-head').forEach(head=>{
+    const textEls = head.querySelectorAll('.section-num, h2');
+    textEls.forEach(el => el.dataset.text = el.innerText);
+
+    gsap.from(head, {
+      opacity:0, y:30, duration:.7, ease:'power3.out',
+      scrollTrigger:{ 
+        trigger: head, 
+        start:'top 85%',
+        onEnter: () => {
+          textEls.forEach(el => {
+            const originalText = el.dataset.text;
+            const length = originalText.length;
+            const scrambleObj = { progress: 0 };
+            
+            gsap.to(scrambleObj, {
+              progress: 1,
+              duration: 0.6,
+              ease: "none",
+              onUpdate: function() {
+                const progress = this.targets()[0].progress;
+                let scrambled = '';
+                for (let i = 0; i < length; i++) {
+                  if (progress >= (i / length)) {
+                    scrambled += originalText[i];
+                  } else if (originalText[i] === ' ') {
+                    scrambled += ' ';
+                  } else {
+                    scrambled += scrambleChars[Math.floor(Math.random() * scrambleChars.length)];
+                  }
+                }
+                el.innerText = scrambled;
+              },
+              onComplete: () => el.innerText = originalText
+            });
+          });
+        }
+      }
+    });
+  });
+  
+  /* 8/10. Projects rail + card reveals + glass refraction + magnetic tilt.
+     Wrapped in a function and called once fonts/layout are final (see bottom of
+     this script). ROOT CAUSE OF THE "invisible project cards" BUG: every card's
+     reveal/refraction ScrollTrigger below uses containerAnimation: railTween.
+     GSAP freezes (never advances) the render state of a containerAnimation-based
+     ScrollTrigger the moment ScrollTrigger.refresh() is called again AFTER that
+     trigger has already been created - the tween's internal time keeps ticking
+     but its eased ratio sticks at 0 forever, so opacity/y never animate even
+     though nothing throws and toggleActions fire normally. The previous fix
+     attempt (three ScrollTrigger.refresh() calls: sync, fonts.ready, load) is
+     exactly what triggered this, because mm.add() below ran BEFORE any of those
+     refreshes, so every one of them corrupted the freshly-created card triggers.
+     Fix: create these containerAnimation triggers only once, after fonts are
+     ready, and never call ScrollTrigger.refresh() again afterward. */
+  function initProjectsRail(){
+  let mm = gsap.matchMedia();
+  mm.add({
+    desktop: "(min-width: 768px)",
+    mobile: "(max-width: 767px)"
+  }, (context) => {
+    let { desktop } = context.conditions;
+    const grid = document.querySelector('.specimen-grid');
+    let railTween;
+    
+    if (desktop) {
+      grid.classList.add('rail-mode');
+      let getScrollAmount = () => -(grid.scrollWidth - window.innerWidth + 300);
+      
+      railTween = gsap.to(grid, {
+        x: getScrollAmount,
+        ease: "none"
+      });
+
+      ScrollTrigger.create({
+        trigger: "#projects",
+        start: "top 10%", // pin slightly below top to show section head
+        end: () => `+=${grid.scrollWidth - window.innerWidth + 300}`,
+        pin: true,
+        animation: railTween,
+        scrub: 1,
+        invalidateOnRefresh: true
+      });
+    }
+
+    gsap.utils.toArray('.specimen').forEach((card, i)=>{
+      // 8. Card Reveals (Modified for Feature 4)
+      // NOTE: this used to be a gsap.timeline().from(...) driven purely by
+      // toggleActions on a containerAnimation-based ScrollTrigger. GSAP silently
+      // fails to render opacity/y for that exact combo (timeline + .from()'s
+      // runBackwards + containerAnimation): the tween's internal time/progress
+      // advances correctly (confirmed via inspection) but the DOM never gets
+      // updated, so every card stayed permanently invisible. Driving the same
+      // reveal from plain onEnter/onLeaveBack callbacks with direct gsap.to()
+      // calls sidesteps that broken code path entirely and renders reliably.
+      const words = card.querySelectorAll('.word');
+      gsap.set(card, { opacity: 0, y: 40 });
+      if (words.length > 0) gsap.set(words, { opacity: 0, y: 20, rotationX: -40 });
+
+      const playReveal = () => {
+        gsap.to(card, { opacity:1, y:0, duration:.7, ease:'power3.out', delay: desktop ? 0 : (i%3)*0.08, overwrite:'auto' });
+        if (words.length > 0) {
+          gsap.to(words, { opacity:1, y:0, rotationX:0, duration:0.6, ease:'power3.out', stagger:0.02, delay: desktop ? 0 : (i%3)*0.08 + 0.2, overwrite:'auto' });
+        }
+      };
+      const resetReveal = () => {
+        gsap.set(card, { opacity: 0, y: 40 });
+        if (words.length > 0) gsap.set(words, { opacity: 0, y: 20, rotationX: -40 });
+      };
+
+      ScrollTrigger.create({
+        trigger: card,
+        start: desktop ? 'left 85%' : 'top 88%',
+        containerAnimation: desktop ? railTween : null,
+        onEnter: playReveal,
+        onEnterBack: playReveal,
+        onLeaveBack: resetReveal
+      });
+
+      
+
+      // 10. Magnetic Card Tilt & CSS Cursor Follow (runs regardless of breakpoint)
+      const xTo = gsap.quickTo(card, "rotationY", {duration: 0.4, ease: "power3"}),
+            yTo = gsap.quickTo(card, "rotationX", {duration: 0.4, ease: "power3"});
+      
+      const mouseMove = (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        card.style.setProperty('--x', `${x}px`);
+        card.style.setProperty('--y', `${y}px`);
+        const rx = (x / rect.width) - 0.5;
+        const ry = (y / rect.height) - 0.5;
+        xTo(rx * 28);
+        yTo(-ry * 28);
+      };
+      const mouseLeave = () => { xTo(0); yTo(0); };
+      
+      card.addEventListener("mousemove", mouseMove);
+      card.addEventListener("mouseleave", mouseLeave);
+      
+      // cleanup listeners if matchMedia runs again
+      return () => {
+        card.removeEventListener("mousemove", mouseMove);
+        card.removeEventListener("mouseleave", mouseLeave);
+      };
+    });
+
+    return () => { 
+      if(desktop) grid.classList.remove('rail-mode'); 
+    };
+  });
+  } // end initProjectsRail()
+
+  /* 20. Scroll progress bar - thin gradient line synced 1:1 to page scroll */
+  gsap.to('.scroll-progress', {
+    scaleX: 1, ease: 'none',
+    scrollTrigger: { trigger: 'body', start: 'top top', end: 'bottom bottom', scrub: 0.3 }
+  });
+
+  /* 21. Magnetic nav links - subtle pull toward the cursor, same quickTo pattern as the cards */
+  if (!isTouchDevice() && !reduceMotion) {
+    document.querySelectorAll('nav[data-app-nav] a').forEach(link => {
+      const lx = gsap.quickTo(link, "x", { duration: 0.3, ease: "power3" }),
+            ly = gsap.quickTo(link, "y", { duration: 0.3, ease: "power3" });
+      link.addEventListener('mousemove', (e) => {
+        const r = link.getBoundingClientRect();
+        lx((e.clientX - (r.left + r.width / 2)) * 0.35);
+        ly((e.clientY - (r.top + r.height / 2)) * 0.35);
+      });
+      link.addEventListener('mouseleave', () => { lx(0); ly(0); });
+    });
+  }
+  /* 23. Flip-powered expand for the photo CTA placeholder panel. Flip.min.js
+     is already loaded elsewhere on the page and was unused until now.
+     Flip.getState() is called BEFORE the class toggle (while the panel still
+     has its old max-height/opacity), so Flip can smooth the jump to the new
+     size instead of an instant snap. */
+  const photoCta = document.getElementById('photoCta');
+  const photoPanel = document.getElementById('photoPanel');
+  if (photoCta && photoPanel && typeof Flip !== 'undefined') {
+    photoCta.addEventListener('click', (e) => {
+      e.preventDefault();
+      const state = Flip.getState(photoPanel);
+      photoPanel.classList.toggle('expanded');
+      Flip.from(state, { duration:0.5, ease:'power2.inOut' });
+    });
+  }
+
+  /* 24. Photo category subnav: filters the grid, and only shows once the
+     photo panel area is in view (fades in/out with ScrollTrigger, same glass
+     bar sitting under the main nav). */
+  const photoSubnav = document.getElementById('photoSubnav');
+  const photoGrid = document.getElementById('photoGrid');
+  if (photoSubnav && photoGrid) {
+    photoSubnav.addEventListener('click', (e) => {
+      const btn = e.target.closest('.photo-subnav-cat');
+      if (!btn) return;
+      photoSubnav.querySelectorAll('.photo-subnav-cat').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const cat = btn.dataset.cat;
+      photoGrid.querySelectorAll('.photo-card').forEach(card => {
+        card.classList.toggle('hidden-cat', cat !== 'all' && card.dataset.cat !== cat);
+      });
+    });
+  }
+  if (photoSubnav && photoCta) {
+    photoCta.addEventListener('click', () => {
+      photoSubnav.classList.toggle('visible', photoPanel.classList.contains('expanded'));
+    });
+  }
+
+  /* 25. Lightbox: click a photo card to open its full-res version. */
+  const lightbox = document.getElementById('photoLightbox');
+  const lightboxImg = document.getElementById('photoLightboxImg');
+  const lightboxClose = document.getElementById('photoLightboxClose');
+  if (photoGrid && lightbox && lightboxImg) {
+    photoGrid.addEventListener('click', (e) => {
+      const card = e.target.closest('.photo-card');
+      if (!card) return;
+      const img = card.querySelector('img');
+      lightboxImg.src = img.dataset.full || img.src;
+      lightboxImg.alt = img.alt;
+      lightbox.classList.add('visible');
+    });
+    const closeLightbox = () => { lightbox.classList.remove('visible'); lightboxImg.src = ''; };
+    lightboxClose.addEventListener('click', closeLightbox);
+    lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeLightbox(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLightbox(); });
+  }
+
+  function isTouchDevice(){ return window.matchMedia('(pointer: coarse)').matches; }
+
+  /* 22. Magnetic hover on the photo CTA + skill tags - same quickTo pattern as
+     the nav links above, just a gentler pull (0.25 vs 0.35) since these are
+     smaller targets. Separate element loop/closures, so it can't interfere
+     with the nav's own magnetic effect. */
+  if (!isTouchDevice() && !reduceMotion) {
+    document.querySelectorAll('.photo-cta, .tag-chip').forEach(el => {
+      const mx = gsap.quickTo(el, "x", { duration: 0.3, ease: "power3" }),
+            my = gsap.quickTo(el, "y", { duration: 0.3, ease: "power3" });
+      el.addEventListener('mousemove', (e) => {
+        const r = el.getBoundingClientRect();
+        mx((e.clientX - (r.left + r.width / 2)) * 0.25);
+        my((e.clientY - (r.top + r.height / 2)) * 0.25);
+      });
+      el.addEventListener('mouseleave', () => { mx(0); my(0); });
+    });
+  }
+
+  /* 6. Top nav scrollspy indicator */
+  const navLinks = { projects: document.querySelector('[data-nav="projects"]'), experience: document.querySelector('[data-nav="experience"]') };
+  const indicator = document.querySelector('.nav-indicator');
+  let activeNavLink = null;
+  function moveIndicator(link){
+    if (!link || !indicator) return;
+    activeNavLink = link;
+    gsap.to(indicator, {
+      opacity:1, x: link.offsetLeft, width: link.offsetWidth,
+      duration:.35, ease:'power2.out', overwrite:'auto'
+    });
+    Object.values(navLinks).forEach(a=> a && a.classList.remove('active'));
+    link.classList.add('active');
+  }
+  function hideIndicator(){
+    activeNavLink = null;
+    gsap.to(indicator, { opacity:0, duration:.25, ease:'power2.out', overwrite:'auto' });
+    Object.values(navLinks).forEach(a=> a && a.classList.remove('active'));
+  }
+  // BUG FIX: the indicator's x/width were only ever committed once, at the moment
+  // a section's onEnter/onEnterBack fired. Nothing reset it when scrolling back up
+  // above "Projects", and nothing kept it in sync with the nav's own layout shifting
+  // (the wordmark morph above grows/shrinks the nav width while scrubbing), so
+  // scrolling down then back up left the pill parked at a stale x/width, visibly
+  // misaligned/overlapping the wrong link - exactly the reported glitch.
+  ['projects','experience'].forEach((id, idx)=>{
+    const section = document.getElementById(id);
+    if (!section) return;
+    ScrollTrigger.create({
+      trigger: section, start:'top 40%', end:'bottom 40%',
+      onEnter: ()=> moveIndicator(navLinks[id]),
+      onEnterBack: ()=> moveIndicator(navLinks[id]),
+      onLeaveBack: ()=> { if (idx === 0) hideIndicator(); }
+    });
+  });
+  // Keep the pill glued to its link while the nav's own width is still animating
+  // (e.g. right after a resize, or while other layout-affecting tweens run).
+  ScrollTrigger.addEventListener('refresh', () => {
+    if (activeNavLink) gsap.set(indicator, { x: activeNavLink.offsetLeft, width: activeNavLink.offsetWidth });
+  });
+  
+  // 13. Custom Cursor (Feature 3)
+  const isTouch = window.matchMedia('(pointer: coarse)').matches;
+  if (!isTouch && !reduceMotion) {
+    document.body.classList.add('has-custom-cursor');
+    const cursorDot = document.querySelector('.cursor-dot');
+    const cursorRing = document.querySelector('.cursor-ring');
+    let isHoveringTarget = false;
+
+    // Position quick setters
+    const dotX = gsap.quickTo(cursorDot, "left", {duration: 0.1, ease: "power3"});
+    const dotY = gsap.quickTo(cursorDot, "top", {duration: 0.1, ease: "power3"});
+    const ringX = gsap.quickTo(cursorRing, "left", {duration: 0.4, ease: "power3"});
+    const ringY = gsap.quickTo(cursorRing, "top", {duration: 0.4, ease: "power3"});
+
+    window.addEventListener("mousemove", e => {
+      dotX(e.clientX); dotY(e.clientY);
+      ringX(e.clientX); ringY(e.clientY);
+    });
+
+    // Hover effects
+    const hoverTargets = document.querySelectorAll('.specimen, nav[data-app-nav] a, .letters .letter');
+    hoverTargets.forEach(target => {
+      target.addEventListener('mouseenter', () => {
+        isHoveringTarget = true;
+        gsap.to(cursorRing, { scale: 1.8, borderColor: 'var(--moss)', backgroundColor: 'rgba(138, 154, 91, 0.1)', boxShadow: '0 0 0 8px rgba(138,154,91,0.12)', duration: 0.3 });
+        gsap.to(cursorDot, { scale: 0, duration: 0.2 });
+      });
+      target.addEventListener('mouseleave', () => {
+        isHoveringTarget = false;
+        gsap.to(cursorRing, { scale: 1, borderColor: 'var(--rust)', backgroundColor: 'transparent', boxShadow: '0 0 0 0 rgba(255,255,255,0)', duration: 0.3 });
+        gsap.to(cursorDot, { scale: 1, duration: 0.2 });
+      });
+    });
+
+    // Click feedback: quick elastic squeeze on the ring + an expanding ripple burst,
+    // so every click reads as a deliberate, satisfying action rather than a dead tap.
+    window.addEventListener('mousedown', (e) => {
+      gsap.to(cursorRing, { scale: (isHoveringTarget ? 1.8 : 1) * 0.75, duration: 0.15, ease: 'power2.out' });
+
+      const ripple = document.createElement('div');
+      ripple.className = 'cursor-ripple';
+      ripple.style.left = e.clientX + 'px';
+      ripple.style.top = e.clientY + 'px';
+      document.body.appendChild(ripple);
+      gsap.fromTo(ripple,
+        { scale: 0, opacity: 0.9 },
+        { scale: 3.2, opacity: 0, duration: 0.6, ease: 'power2.out', onComplete: () => ripple.remove() }
+      );
+    });
+    window.addEventListener('mouseup', () => {
+      gsap.to(cursorRing, { scale: isHoveringTarget ? 1.8 : 1, duration: 0.5, ease: 'elastic.out(1, 0.4)' });
+    });
+  }
+
+  /* Static glass map — fixed width/height, matching the reference bar exactly
+     (no ResizeObserver, no dynamic regeneration; width is fixed, not fluid). */
+
+  /* 19. Draggable/Inertia Field Log (Feature 10) */
+  const track = document.querySelector('.fieldlog-track');
+  if (track) {
+    const singleWidth = track.scrollWidth + 48; // add the 48px gap
+    track.innerHTML += track.innerHTML; // Duplicate for seamless looping
+    
+    const wrap = gsap.utils.wrap(-singleWidth, 0);
+    let loopTween;
+    
+    function startLoop() {
+      if(loopTween) loopTween.kill();
+      loopTween = gsap.to(track, {
+        x: `-=${singleWidth}`,
+        duration: 38,
+        ease: "none",
+        repeat: -1,
+        modifiers: {
+          x: gsap.utils.unitize(wrap)
+        }
+      });
+    }
+    startLoop();
+
+    let dragResumeTimer;
+    function resumeLoop() {
+      clearTimeout(dragResumeTimer);
+      dragResumeTimer = setTimeout(() => {
+        startLoop();
+      }, 2000);
+    }
+
+    Draggable.create(track, {
+      type: "x",
+      inertia: true,
+      trigger: ".fieldlog",
+      modifiers: {
+        x: wrap
+      },
+      onDragStart: () => {
+        if(loopTween) loopTween.pause();
+        clearTimeout(dragResumeTimer);
+      },
+      onThrowComplete: resumeLoop,
+      onDragEnd: function() {
+        if (!this.tween || !this.tween.isActive()) {
+          resumeLoop();
+        }
+      }
+    });
+  }
+
+  // Fix for the invisible-project-cards bug (see the comment above initProjectsRail):
+  // 1) Refresh once now so every OTHER trigger created above (hero pin, section-head
+  //    reveals, nav morph, glow parallax) is accurate even before
+  //    webfonts finish loading. None of those use containerAnimation, so refreshing
+  //    them repeatedly is harmless.
+  // 2) Only THEN create the rail + card ScrollTriggers (which do use
+  //    containerAnimation), once fonts are ready so their start/end pixel math is
+  //    correct from the start - and crucially, refresh() is never called again
+  //    afterward, which is what was silently freezing their opacity/y tweens at 0.
+  ScrollTrigger.refresh();
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(initProjectsRail);
+  } else {
+    window.addEventListener('load', initProjectsRail);
+  }
+})();
+</script>
+
+</body>
+</html>
