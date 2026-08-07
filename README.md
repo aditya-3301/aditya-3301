@@ -43,11 +43,6 @@ I'm a CS student at **BITS Pilani**, currently studying neural networks and bioi
 
 ---
 
-### Right Now
-
-```diff
-+ training neural nets from the ground up (in progress)
-```
 
 ---
 
